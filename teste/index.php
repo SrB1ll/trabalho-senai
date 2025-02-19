@@ -42,57 +42,65 @@
             color: green;
         }
     </style>
+    <script>
+        function buscarComputadoresLivres() {
+            var data = document.getElementById('data_pesquisa').value;
+            if (data) {
+                var nome = document.getElementById('nome').value;
+                var matricula = document.getElementById('matricula').value;
+                var curso = document.getElementById('curso').value;
+                window.location.href = 'index.php?data=' + encodeURIComponent(data) + '&nome=' + encodeURIComponent(nome) + '&matricula=' + encodeURIComponent(matricula) + '&curso=' + encodeURIComponent(curso);
+            }
+        }
+    </script>
 </head>
 <body>
     <form action="cadastro.php" method="POST">
         <h2>Cadastro de Computador</h2>
-        <input type="text" name="nome" placeholder="Nome" required>
-        <input type="text" name="matricula" placeholder="Matrícula" required>
-        <input type="text" name="curso" placeholder="Curso" required>
-        <label for="computador_num">Computador:</label>
-        <select name="computador_num" id="computador_num" required>
-            <option value="">Selecione um Computador</option>
+        <input type="text" name="nome" id="nome" placeholder="Nome" required value="<?php echo isset($_GET['nome']) ? htmlspecialchars($_GET['nome']) : ''; ?>">
+        <input type="text" name="matricula" id="matricula" placeholder="Matrícula" required value="<?php echo isset($_GET['matricula']) ? htmlspecialchars($_GET['matricula']) : ''; ?>">
+        <input type="text" name="curso" id="curso" placeholder="Curso" required value="<?php echo isset($_GET['curso']) ? htmlspecialchars($_GET['curso']) : ''; ?>">
+
+        <h2>Pesquisar Computadores Livres</h2>
+        <label for="data_pesquisa">Escolha uma data:</label>
+        <input type="date" name="data_pesquisa" id="data_pesquisa" required onchange="buscarComputadoresLivres()" value="<?php echo isset($_GET['data']) ? htmlspecialchars($_GET['data']) : ''; ?>">
+        
+        <?php if (isset($_GET['data'])) { ?>
+        <label for="inicio">Início:</label>
+        <select name="inicio" id="inicio" required>
+            <option value="">Selecione um horário</option>
+            <!-- As opções serão preenchidas dinamicamente pelo PHP -->
             <?php
-            // Conexão com a base de dados
+            $data = $_GET['data'];
             $conn = new mysqli('localhost', 'root', '', 'teste');
 
             if ($conn->connect_error) {
                 die("Conexão falhou: " . $conn->connect_error);
             }
 
-            $sql = "SELECT computador_num, status FROM computadores";
-            $result = $conn->query($sql);
+            $horarios = [
+                '08:00', '09:00', '10:00',
+                '14:00', '15:00', '16:00',
+                '19:00', '20:00'
+            ];
 
-            if ($result->num_rows > 0) {
-                while($row = $result->fetch_assoc()) {
-                    $status = $row['status'] == 'livre' ? 'livre' : 'ocupado';
-                    $disabled = $row['status'] == 'livre' ? '' : 'disabled';
-                    echo "<option value='" . $row['computador_num'] . "' class='$status' $disabled>" . $row['computador_num'] . " (" . $row['status'] . ")</option>";
+            foreach ($horarios as $horario) {
+                $datetime_inicio = $data . ' ' . $horario . ":00";
+                $datetime_fim = date('Y-m-d H:i:s', strtotime($datetime_inicio . ' +1 hour'));
+
+                $sql = "SELECT * FROM horarios WHERE DATE(inicio) = '$data' AND ((inicio <= '$datetime_inicio' AND fim > '$datetime_inicio') OR (inicio < '$datetime_fim' AND fim >= '$datetime_fim'))";
+                $result = $conn->query($sql);
+
+                if ($result->num_rows == 0) {
+                    echo "<option value='$horario'>$horario</option>";
                 }
-            } else {
-                echo "<option value=''>Nenhum computador disponível</option>";
             }
 
             $conn->close();
             ?>
         </select>
-        <label for="data">Data:</label>
-        <input type="date" name="data" id="data" required>
-        <label for="inicio">Início:</label>
-        <select name="inicio" id="inicio" required>
-            <option value="">Selecione um horário</option>
-            <?php
-            // Exibe opções de horários específicos
-            $horarios = [
-                '08:00', '09:00', '10:00', '11:00',
-                '14:00', '15:00', '16:00', '17:00',
-                '19:00', '20:00', '21:00',
-            ];
-            foreach ($horarios as $horario) {
-                echo "<option value='$horario'>$horario</option>";
-            }
-            ?>
-        </select>
+        <?php } ?>
+
         <button type="submit">Cadastrar</button>
     </form>
 </body>
