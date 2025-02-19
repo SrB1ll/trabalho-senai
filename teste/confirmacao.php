@@ -39,6 +39,17 @@ if (isset($_GET['nome']) && isset($_GET['matricula']) && isset($_GET['curso']) &
         .container p {
             margin: 10px 0;
         }
+        .button-container {
+            margin-top: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +61,9 @@ if (isset($_GET['nome']) && isset($_GET['matricula']) && isset($_GET['curso']) &
         <p><strong>Data:</strong> <?php echo date('d/m/Y', strtotime($data)); ?></p>
         <p><strong>Horário:</strong> <?php echo htmlspecialchars($inicio); ?></p>
         <p><strong>Computador Selecionado:</strong> <?php echo htmlspecialchars($computador_num); ?></p>
+        <div class="button-container">
+            <button onclick="window.location.href='index.php';">Voltar</button>
+        </div>
     </div>
 </body>
 </html>
